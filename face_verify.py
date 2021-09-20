@@ -12,6 +12,7 @@ from utils import load_facebank, draw_box_name, prepare_facebank
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='for face verification')
     parser.add_argument("-s", "--save", help="whether save",action="store_true")
+    parser.add_argument('--image','-i', default=0, type=str,help='image path. Defaults to camera index 0')
     parser.add_argument('-th','--threshold',help='threshold to decide identical faces',default=1.54, type=float)
     parser.add_argument("-u", "--update", help="whether perform update the facebank",action="store_true")
     parser.add_argument("-tta", "--tta", help="whether test time augmentation",action="store_true")
@@ -40,7 +41,7 @@ if __name__ == '__main__':
         print('facebank loaded')
 
     # inital camera
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(args.image)
     cap.set(3,1280)
     cap.set(4,720)
     if args.save:
