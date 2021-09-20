@@ -40,41 +40,21 @@ if __name__ == '__main__':
         targets, names = load_facebank(conf)
         print('facebank loaded')
 
-    # inital camera
-    cap = cv2.VideoCapture(args.image)
-    cap.set(3,1280)
-    cap.set(4,720)
+    try:
+        frame = cv2.imread(args.image)
+        image = Image.fromarray(frame)
+        bboxes, faces = mtcnn.align_multi(image, conf.face_limit, conf.min_face_size)
+        bboxes = bboxes[:,:-1] #shape:[10,4],only keep 10 highest possibiity faces
+        bboxes = bboxes.astype(int)
+        bboxes = bboxes + [-1,-1,1,1] # personal choice
+        results, score = learner.infer(conf, faces, targets, args.tta)
+        for idx,bbox in enumerate(bboxes):
+            if args.score:
+                frame = draw_box_name(bbox, names[results[idx] + 1] + '_{:.2f}'.format(score[idx]), frame)
+            else:
+                frame = draw_box_name(bbox, names[results[idx] + 1], frame)
+    except:
+      print('detect error')
+
     if args.save:
-        video_writer = cv2.VideoWriter(conf.data_path/'recording.avi', cv2.VideoWriter_fourcc(*'XVID'), 6, (1280,720))
-        # frame rate 6 due to my laptop is quite slow...
-    while cap.isOpened():
-        isSuccess,frame = cap.read()
-        if isSuccess:            
-            try:
-#                 image = Image.fromarray(frame[...,::-1]) #bgr to rgb
-                image = Image.fromarray(frame)
-                bboxes, faces = mtcnn.align_multi(image, conf.face_limit, conf.min_face_size)
-                bboxes = bboxes[:,:-1] #shape:[10,4],only keep 10 highest possibiity faces
-                bboxes = bboxes.astype(int)
-                bboxes = bboxes + [-1,-1,1,1] # personal choice    
-                results, score = learner.infer(conf, faces, targets, args.tta)
-                for idx,bbox in enumerate(bboxes):
-                    if args.score:
-                        frame = draw_box_name(bbox, names[results[idx] + 1] + '_{:.2f}'.format(score[idx]), frame)
-                    else:
-                        frame = draw_box_name(bbox, names[results[idx] + 1], frame)
-            except:
-                print('detect error')    
-                
-            cv2.imshow('face Capture', frame)
-
-        if args.save:
-            video_writer.write(frame)
-
-        if cv2.waitKey(1)&0xFF == ord('q'):
-            break
-
-    cap.release()
-    if args.save:
-        video_writer.release()
-    cv2.destroyAllWindows()    
+      cv2.imwrite('data/detection_output.jpg', frame)
