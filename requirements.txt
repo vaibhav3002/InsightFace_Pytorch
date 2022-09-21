@@ -4,7 +4,7 @@ bcolz==1.2.1
 easydict==1.7
 tensorboardX==1.2
 torchvision==0.2.1
-numpy==1.19.2
+numpy==1.21.6
 torch==1.6.0
 scipy==1.5.3
 opencv_python==4.2.0.34
